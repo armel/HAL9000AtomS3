@@ -39,8 +39,8 @@ void getVideoList(File dir) {
       M5.Lcd.drawString(tmp, 64, 70);
 
       if (strstr(entry.name(), "-medium") != NULL) {
-        videoFilenameMedium[indice] = entry.name();
-        indice++;
+        videoFilenameMedium[limit] = entry.name();
+        limit++;
         delay(50);
       }
     }
@@ -190,11 +190,16 @@ void medium() {
   tarGzFS.begin();
 
   while (1) {
-    while (videoCurrent == videoLast) {
-      videoCurrent = random(indice);  // Returns a pseudo-random integer between 0 and number of video files
+    if (RANDOM == 1) {
+      while (videoCurrent == videoLast) {
+        videoCurrent = random(limit);  // Returns a pseudo-random integer between 0 and number of video files
+      }
+    } else {
+      indice       = (indice++ < (limit - 1)) ? indice : 0;
+      videoCurrent = indice;
     }
 
-    Serial.println(videoFilenameMedium[videoCurrent]);
+    // Serial.printf("%d %s\n", videoCurrent, videoFilenameMedium[videoCurrent]);
 
     cover = videoFilenameMedium[videoCurrent];
     cover.replace(".mjpg.gz", ".jpg");
@@ -204,7 +209,8 @@ void medium() {
     jpegDraw(("/" + cover).c_str(), jpegDrawCallback, true /* useBigEndian */, 0 /* x */, 0 /* y */,
              128 /* widthLimit */, 128 /* heightLimit */);
 
-    load                   = true;
+    load = true;
+
     GzUnpacker *GZUnpacker = new GzUnpacker();
     GZUnpacker->haltOnError(true);                   // stop on fail (manual restart/reset required)
     GZUnpacker->setupFSCallbacks(targzTotalBytesFn,
@@ -274,7 +280,7 @@ void medium() {
     counter++;
 
     Serial.printf("%d %d \n", counter, limit);
-    if (counter >= limit) {
+    if (counter >= showEye) {
       eye();
       mediumInit();
       counter = 0;

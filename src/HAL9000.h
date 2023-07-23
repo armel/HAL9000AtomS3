@@ -6,7 +6,7 @@
 #define AUTHOR  "F4HWN"
 #define NAME    "HAL9000"
 
-#define DEBUG  0
+#define RANDOM 0
 #define CORE   1
 #define CORE2  2
 #define CORES3 3
@@ -44,11 +44,12 @@ String videoFilenameSmall[128];
 boolean load = false;
 boolean skip = false;
 
-uint8_t indice       = 0;
+int8_t indice        = 0;
+uint8_t limit        = 0;
 uint8_t videoCurrent = 0;
 uint8_t videoLast    = 0;
 uint8_t brightness   = 32;
-uint8_t limit        = 10;
+uint8_t showEye      = 10;
 
 #if BOARD == ATOMS3
 // #define GFX_DEV_DEVICE ARDUINO_M5Stack_ATOMS3
