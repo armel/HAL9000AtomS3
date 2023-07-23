@@ -1,9 +1,5 @@
-# HAL9000
-![basic](https://img.shields.io/badge/M5Stack-BASIC-blue)
-![grey](https://img.shields.io/badge/M5Stack-GREY-blue)
-![fire](https://img.shields.io/badge/M5Stack-FIRE-orange)
-![core2](https://img.shields.io/badge/M5Stack-CORE2-green)
-![aws](https://img.shields.io/badge/M5Stack-AWS-orange)
+# HAL9000 for AtomS3
+![atomS3](https://img.shields.io/badge/M5Stack-ATOMS3-white)
 
 ![licence](https://img.shields.io/github/license/armel/ICSMeter)
 ![language](https://img.shields.io/github/languages/top/armel/ICSMeter)
@@ -19,7 +15,7 @@ This project is a little [HAL9000](https://en.wikipedia.org/wiki/HAL_9000) simul
 
 # Usage
 
-Use left and right buttons to adjust brightness. Use the middle button to hear HAL9000.
+None
 
 # Credits
  
