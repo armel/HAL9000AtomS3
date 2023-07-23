@@ -246,7 +246,7 @@ void medium() {
           total_decode_video += millis() - curr_ms;
           curr_ms = millis();
           total_frames++;
-          //delay(25); // Hack for AtomS3 only !!!
+          delay(25); // Hack for AtomS3 only !!!
         }
         Serial.println(F("MJPEG end"));
         mjpegFile.close();
