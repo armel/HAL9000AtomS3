@@ -1,0 +1,51 @@
+// Copyright (c) F4HWN Armel. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+#include "HAL9000.h"
+#include "font.h"
+#include "functions.h"
+
+// Setup
+void setup() {
+  // Init M5
+  auto cfg = M5.config();
+
+  cfg.clear_display = true;  // default=true. clear the screen when begin.
+  // cfg.output_power  = false;  // default=true. use external port 5V output.
+  cfg.internal_imu = true;                      // default=true. use internal IMU.
+  cfg.internal_rtc = true;                      // default=true. use internal RTC.
+  cfg.internal_spk = true;                      // default=true. use internal speaker.
+  cfg.internal_mic = true;                      // default=true. use internal microphone.
+  cfg.external_imu = false;                     // default=false. use Unit Accel & Gyro.
+  cfg.external_rtc = false;                     // default=false. use Unit RTC.
+
+  cfg.external_display.module_display = true;   // default=true. use ModuleDisplay
+  cfg.external_display.atom_display   = true;   // default=true. use AtomDisplay
+  cfg.external_display.unit_oled      = false;  // default=true. use UnitOLED
+  cfg.external_display.unit_lcd       = false;  // default=true. use UnitLCD
+  cfg.external_display.unit_rca       = false;  // default=false. use UnitRCA VideoOutput
+  cfg.external_display.module_rca     = false;  // default=false. use ModuleRCA VideoOutput
+
+  M5.begin(cfg);
+
+  // Init Rand
+  esp_random();
+
+  // Init Display
+  gfx->begin();
+  gfx->setRotation(2);
+  gfx->fillScreen(TFT_BLACK);
+
+  M5.Lcd.setBrightness(brightness);
+
+  // Clean LittleFS
+  LittleFS.remove("/tmp.mjpg");
+
+  // Boot
+  boot();
+}
+
+// Main loop
+void loop() {
+  medium();
+}
