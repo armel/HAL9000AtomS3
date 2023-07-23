@@ -48,7 +48,7 @@ uint8_t indice       = 0;
 uint8_t videoCurrent = 0;
 uint8_t videoLast    = 0;
 uint8_t brightness   = 96;
-uint8_t limit        = 1;
+uint8_t limit        = 10;
 
 #if BOARD == ATOMS3
 //#define GFX_DEV_DEVICE ARDUINO_M5Stack_ATOMS3
