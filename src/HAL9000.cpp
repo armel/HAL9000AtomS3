@@ -41,6 +41,15 @@ void setup() {
   // Clean LittleFS
   LittleFS.remove("/tmp.mjpg");
 
+  // Multitasking task for retreive button
+  xTaskCreatePinnedToCore(checkButton,    // Function to implement the task
+                          "checkButton",  // Name of the task
+                          8192,           // Stack size in words
+                          NULL,           // Task input parameter
+                          4,              // Priority of the task
+                          NULL,           // Task handle
+                          1);             // Core where the task should run
+
   // Boot
   boot();
 }

@@ -2,8 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 // pixel drawing callback
-static int jpegDrawCallback(JPEGDRAW *pDraw)
-{
+static int jpegDrawCallback(JPEGDRAW *pDraw) {
   // Serial.printf("Draw pos = %d,%d. size = %d x %d\n", pDraw->x, pDraw->y, pDraw->iWidth, pDraw->iHeight);
   gfx->draw16bitBeRGBBitmap(pDraw->x, pDraw->y, pDraw->pPixels, pDraw->iWidth, pDraw->iHeight);
   return 1;
@@ -55,6 +54,28 @@ void getVideoList(File dir) {
   }
 }
 
+// Check button
+void checkButton(void *pvParameters) {
+  uint8_t btnA, btnL;
+
+  for (;;) {
+    skip = false;
+
+    M5.update();
+
+    btnA = M5.BtnA.isPressed();
+    btnL = M5.BtnA.isHolding();
+
+    if (btnA) {
+      brightness += 4;
+      brightness = (brightness >= 248) ? 0 : brightness;
+      M5.Lcd.setBrightness(brightness);
+      Serial.println(brightness);
+    }
+    vTaskDelay(pdMS_TO_TICKS(20));
+  }
+}
+
 // Progress callback
 void myProgressCallback(uint8_t progress) {
   static int8_t myLastProgress = -1;
@@ -93,10 +114,8 @@ boolean boot() {
   if (!LittleFS.begin()) {
     Serial.println(F("ERROR: File System Mount Failed!"));
   } else {
-    jpegDraw( JPEG_LOGO, jpegDrawCallback, true /* useBigEndian */,
-           0 /* x */,
-           0 /* y */,
-           128 /* widthLimit */, 128 /* heightLimit */);
+    jpegDraw(JPEG_LOGO, jpegDrawCallback, true /* useBigEndian */, 0 /* x */, 0 /* y */, 128 /* widthLimit */,
+             128 /* heightLimit */);
 
     // Get video files
     root = LittleFS.open("/");
@@ -128,10 +147,8 @@ boolean eye() {
   if (!LittleFS.begin()) {
     Serial.println(F("ERROR: File System Mount Failed!"));
   } else {
-    jpegDraw( JPEG_EYE, jpegDrawCallback, true /* useBigEndian */,
-           0 /* x */,
-           0 /* y */,
-           128 /* widthLimit */, 128 /* heightLimit */);
+    jpegDraw(JPEG_EYE, jpegDrawCallback, true /* useBigEndian */, 0 /* x */, 0 /* y */, 128 /* widthLimit */,
+             128 /* heightLimit */);
   }
 
   for (uint8_t i = 0; i <= brightness; i++) {
@@ -182,14 +199,12 @@ void medium() {
     cover = videoFilenameMedium[videoCurrent];
     cover.replace(".mjpg.gz", ".jpg");
 
-    //M5.Lcd.drawJpgFile(LittleFS, "/" + cover, 0, 0);
+    // M5.Lcd.drawJpgFile(LittleFS, "/" + cover, 0, 0);
 
-    jpegDraw( ("/" + cover).c_str(), jpegDrawCallback, true /* useBigEndian */,
-           0 /* x */,
-           0 /* y */,
-           128 /* widthLimit */, 128 /* heightLimit */);
+    jpegDraw(("/" + cover).c_str(), jpegDrawCallback, true /* useBigEndian */, 0 /* x */, 0 /* y */,
+             128 /* widthLimit */, 128 /* heightLimit */);
 
-    load = true;
+    load                   = true;
     GzUnpacker *GZUnpacker = new GzUnpacker();
     GZUnpacker->haltOnError(true);                   // stop on fail (manual restart/reset required)
     GZUnpacker->setupFSCallbacks(targzTotalBytesFn,
@@ -238,15 +253,14 @@ void medium() {
           // Play video
           mjpegClass.drawJpg();
 
-          if(load == true)
-          {
+          if (load == true) {
             load = false;
           }
 
           total_decode_video += millis() - curr_ms;
           curr_ms = millis();
           total_frames++;
-          delay(25); // Hack for AtomS3 only !!!
+          delay(25);  // Hack for AtomS3 only !!!
         }
         Serial.println(F("MJPEG end"));
         mjpegFile.close();
