@@ -20,7 +20,7 @@ for filename in *; do
     # Convert mjpg
     convert=`basename "../video/$filename" .mp4`
     convert="../video/$convert.mjpg"
-    ffmpeg -i /tmp/crop.mp4 -ss 1 -vf "fps=20" -q:v 6  -y "$convert"
+    ffmpeg -i /tmp/crop.mp4 -ss 1 -vf "fps=18" -q:v 6  -y "$convert"
     # Clean
     rm "$resize"
     mv "$convert" "$mod"
