@@ -15,7 +15,7 @@ This project is a little [HAL9000](https://en.wikipedia.org/wiki/HAL_9000) simul
 
 # Usage
 
-None
+Use the screen button to adjust brightness.
 
 # Credits
  
