@@ -56,7 +56,8 @@ void getVideoList(File dir) {
 
 // Check button
 void checkButton(void *pvParameters) {
-  uint8_t btnA, btnL;
+  uint8_t btnA;
+  int8_t step = 2;
 
   for (;;) {
     skip = false;
@@ -64,13 +65,24 @@ void checkButton(void *pvParameters) {
     M5.update();
 
     btnA = M5.BtnA.isPressed();
-    btnL = M5.BtnA.isHolding();
 
     if (btnA) {
-      brightness += 4;
-      brightness = (brightness >= 248) ? 0 : brightness;
-      M5.Lcd.setBrightness(brightness);
-      Serial.println(brightness);
+      brightnessOld += step;
+      if(step > 0 && brightnessOld >= 254)
+      {
+        step = -step;
+      }
+      else if(step < 0 && brightnessOld <= 2)
+      {
+        step = -step;
+      }
+      
+      if (brightnessOld != brightness)
+      {
+        brightness = brightnessOld;
+        M5.Lcd.setBrightness(brightness);
+        preferences.putUInt("brightness", brightness);
+      }
     }
     vTaskDelay(pdMS_TO_TICKS(20));
   }

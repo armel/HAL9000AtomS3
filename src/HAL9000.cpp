@@ -28,6 +28,11 @@ void setup() {
 
   M5.begin(cfg);
 
+  // Preferences
+  preferences.begin(NAME);
+  brightness  = preferences.getUInt("brightness", 32);
+  brightnessOld = brightness;
+  
   // Init Rand
   esp_random();
 

@@ -19,12 +19,16 @@
 #define DEST_FS_USES_LITTLEFS
 
 // Dependencies
+#include <Preferences.h>
 #include <LittleFS.h>
 #include <ESP32-targz.h>
 #include <M5Unified.h>
 #include <Arduino_GFX_Library.h>
 #include "MjpegClass.h"
 #include "JpegFunc.h"
+
+// Preferences
+Preferences preferences;
 
 // Variables
 static MjpegClass mjpegClass;
@@ -44,12 +48,13 @@ String videoFilenameSmall[128];
 boolean load = false;
 boolean skip = false;
 
-int8_t indice        = 0;
-uint8_t limit        = 0;
-uint8_t videoCurrent = 0;
-uint8_t videoLast    = 0;
-uint8_t brightness   = 32;
-uint8_t showEye      = 10;
+int8_t indice         = 0;
+uint8_t limit         = 0;
+uint8_t videoCurrent  = 0;
+uint8_t videoLast     = 0;
+uint8_t brightness    = 32;
+uint8_t brightnessOld = 0;
+uint8_t showEye       = 10;
 
 #if BOARD == ATOMS3
 // #define GFX_DEV_DEVICE ARDUINO_M5Stack_ATOMS3
