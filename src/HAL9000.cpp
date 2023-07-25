@@ -28,6 +28,11 @@ void setup() {
 
   M5.begin(cfg);
 
+  // Preferences
+  preferences.begin(NAME);
+  brightness  = preferences.getUInt("brightness", 32);
+  brightnessOld = brightness;
+  
   // Init Rand
   esp_random();
 
@@ -40,6 +45,15 @@ void setup() {
 
   // Clean LittleFS
   LittleFS.remove("/tmp.mjpg");
+
+  // Multitasking task for retreive button
+  xTaskCreatePinnedToCore(checkButton,    // Function to implement the task
+                          "checkButton",  // Name of the task
+                          8192,           // Stack size in words
+                          NULL,           // Task input parameter
+                          4,              // Priority of the task
+                          NULL,           // Task handle
+                          1);             // Core where the task should run
 
   // Boot
   boot();
