@@ -4,7 +4,7 @@
 // pixel drawing callback
 static int jpegDrawCallback(JPEGDRAW *pDraw) {
   // Serial.printf("Draw pos = %d,%d. size = %d x %d\n", pDraw->x, pDraw->y, pDraw->iWidth, pDraw->iHeight);
-  gfx->draw16bitBeRGBBitmap(pDraw->x, pDraw->y, pDraw->pPixels, pDraw->iWidth, pDraw->iHeight);
+  M5.Displays(0).pushImage(pDraw->x, pDraw->y, pDraw->iWidth, pDraw->iHeight, pDraw->pPixels);
   return 1;
 }
 
@@ -12,7 +12,7 @@ static int jpegDrawCallback(JPEGDRAW *pDraw) {
 static int mjpegDrawCallback(JPEGDRAW *pDraw) {
   // Serial.printf("Draw pos = %d,%d. size = %d x %d\n", pDraw->x, pDraw->y, pDraw->iWidth, pDraw->iHeight);
   unsigned long start = millis();
-  gfx->draw16bitBeRGBBitmap(pDraw->x, pDraw->y, pDraw->pPixels, pDraw->iWidth, pDraw->iHeight);
+  M5.Displays(0).pushImage(pDraw->x, pDraw->y, pDraw->iWidth, pDraw->iHeight, pDraw->pPixels);
   total_show_video += millis() - start;
   return 1;
 }
@@ -29,14 +29,14 @@ void getVideoList(File dir) {
     }
 
     if (strstr(entry.name(), "/.") == NULL && strstr(entry.name(), ".mjpg.gz") != NULL) {
-      M5.Lcd.setTextPadding(128);
-      M5.Lcd.setTextColor(TFT_WHITE, TFT_BLACK);
-      M5.Lcd.setTextDatum(CC_DATUM);
+      M5.Displays(0).setTextPadding(128);
+      M5.Displays(0).setTextColor(TFT_WHITE, TFT_BLACK);
+      M5.Displays(0).setTextDatum(CC_DATUM);
 
       tmp = entry.name();
       tmp.replace("-medium.mjpg.gz", ".mjpg.gz");
 
-      M5.Lcd.drawString(tmp, 64, 70);
+      M5.Displays(0).drawString(tmp, 64, 90);
 
       if (strstr(entry.name(), "-medium") != NULL) {
         videoFilenameMedium[limit] = entry.name();
@@ -80,7 +80,7 @@ void checkButton(void *pvParameters) {
       if (brightnessOld != brightness)
       {
         brightness = brightnessOld;
-        M5.Lcd.setBrightness(brightness);
+        M5.Displays(0).setBrightness(brightness);
         preferences.putUInt("brightness", brightness);
       }
     }
@@ -117,7 +117,7 @@ void myProgressCallback(uint8_t progress) {
         if (progress < 100) Serial.print("▓");
         break;
     }
-    M5.Lcd.fillRect(14, 60, progress, 4, TFT_WHITE);
+    M5.Displays(0).fillRect(14, 85, progress, 4, TFT_WHITE);
   }
 }
 
@@ -132,19 +132,19 @@ boolean boot() {
     // Get video files
     root = LittleFS.open("/");
 
-    M5.Lcd.setFont(0);
-    M5.Lcd.setTextDatum(CC_DATUM);
-    M5.Lcd.setTextColor(TFT_WHITE, TFT_BLACK);
-    M5.Lcd.drawString("HAL9000", 64, 20);
-    M5.Lcd.drawString("Version " + String(VERSION), 64, 30);
-    M5.Lcd.drawString(" by F4HWN", 64, 40);
-    M5.Lcd.drawString("Loading kernel", 64, 50);
+    M5.Displays(0).setFont(0);
+    M5.Displays(0).setTextDatum(CC_DATUM);
+    M5.Displays(0).setTextColor(TFT_WHITE, TFT_BLACK);
+    M5.Displays(0).drawString("HAL9000", 64, 40);
+    M5.Displays(0).drawString("Version " + String(VERSION), 64, 50);
+    M5.Displays(0).drawString(" by F4HWN", 64, 60);
+    M5.Displays(0).drawString("Loading kernel", 64, 80);
     getVideoList(root);
 
     for (uint8_t i = 0; i < 5; i++) {
-      M5.Lcd.drawString(" ", 64, 90);
+      M5.Displays(0).drawString(" ", 64, 110);
       delay(250);
-      M5.Lcd.drawString("Loading complete", 64, 90);
+      M5.Displays(0).drawString("Loading complete", 64, 110);
       delay(250);
     }
   }
@@ -153,8 +153,8 @@ boolean boot() {
 
 // Eye loader
 boolean eye() {
-  M5.Lcd.clear();
-  M5.Lcd.setBrightness(0);
+  M5.Displays(0).clear();
+  M5.Displays(0).setBrightness(0);
 
   if (!LittleFS.begin()) {
     Serial.println(F("ERROR: File System Mount Failed!"));
@@ -164,14 +164,14 @@ boolean eye() {
   }
 
   for (uint8_t i = 0; i <= brightness; i++) {
-    M5.Lcd.setBrightness(i);
+    M5.Displays(0).setBrightness(i);
     delay(50);
   }
 
   delay(1000);
 
   for (uint8_t i = brightness; i >= 1; i--) {
-    M5.Lcd.setBrightness(i);
+    M5.Displays(0).setBrightness(i);
     delay(50);
   }
 
@@ -183,8 +183,7 @@ void mediumInit() {
   if (!LittleFS.begin()) {
     Serial.println(F("ERROR: File System Mount Failed!"));
   } else {
-    gfx->fillScreen(TFT_BLACK);
-    M5.Lcd.setBrightness(brightness);
+    M5.Displays(0).setBrightness(brightness);
   }
 }
 
@@ -216,7 +215,7 @@ void medium() {
     cover = videoFilenameMedium[videoCurrent];
     cover.replace(".mjpg.gz", ".jpg");
 
-    // M5.Lcd.drawJpgFile(LittleFS, "/" + cover, 0, 0);
+    // M5.Displays(0).drawJpgFile(LittleFS, "/" + cover, 0, 0);
 
     jpegDraw(("/" + cover).c_str(), jpegDrawCallback, true /* useBigEndian */, 0 /* x */, 0 /* y */,
              128 /* widthLimit */, 128 /* heightLimit */);
