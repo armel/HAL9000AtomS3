@@ -30,18 +30,16 @@ void setup() {
 
   // Preferences
   preferences.begin(NAME);
-  brightness  = preferences.getUInt("brightness", 32);
+  brightness    = preferences.getUInt("brightness", BRIGHTNESS);
   brightnessOld = brightness;
   
   // Init Rand
   esp_random();
 
   // Init Display
-  gfx->begin();
-  gfx->setRotation(2);
-  gfx->fillScreen(TFT_BLACK);
-
-  M5.Lcd.setBrightness(brightness);
+  M5.Displays(0).setRotation(2);
+  M5.Displays(0).setBrightness(brightness);
+  M5.Displays(0).fillScreen(TFT_BLACK);
 
   // Clean LittleFS
   LittleFS.remove("/tmp.mjpg");
