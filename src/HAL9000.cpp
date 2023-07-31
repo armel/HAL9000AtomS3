@@ -59,5 +59,5 @@ void setup() {
 
 // Main loop
 void loop() {
-  medium();
+  video();
 }

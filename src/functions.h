@@ -17,7 +17,7 @@ static int mjpegDrawCallback(JPEGDRAW *pDraw) {
   return 1;
 }
 
-// List files on SD
+// List files on LittleFS
 void getVideoList(File dir) {
   String tmp;
 
@@ -34,15 +34,12 @@ void getVideoList(File dir) {
       M5.Displays(0).setTextDatum(CC_DATUM);
 
       tmp = entry.name();
-      tmp.replace("-medium.mjpg.gz", ".mjpg.gz");
 
       M5.Displays(0).drawString(tmp, 64, 90);
 
-      if (strstr(entry.name(), "-medium") != NULL) {
-        videoFilenameMedium[limit] = entry.name();
-        limit++;
-        delay(50);
-      }
+      videoFilename[limit] = entry.name();
+      limit++;
+      delay(50);
     }
 
     if (entry.isDirectory() && strstr(entry.name(), "/.") == NULL) {
@@ -178,8 +175,8 @@ boolean eye() {
   return true;
 }
 
-// Video medium init
-void mediumInit() {
+// Video init
+void videoInit() {
   if (!LittleFS.begin()) {
     Serial.println(F("ERROR: File System Mount Failed!"));
   } else {
@@ -187,8 +184,8 @@ void mediumInit() {
   }
 }
 
-// Video medium
-void medium() {
+// Video
+void video() {
   uint8_t counter = 0;
   String cover;
 
@@ -210,9 +207,9 @@ void medium() {
       videoCurrent = indice;
     }
 
-    // Serial.printf("%d %s\n", videoCurrent, videoFilenameMedium[videoCurrent]);
+    // Serial.printf("%d %s\n", videoCurrent, videoFilename[videoCurrent]);
 
-    cover = videoFilenameMedium[videoCurrent];
+    cover = videoFilename[videoCurrent];
     cover.replace(".mjpg.gz", ".jpg");
 
     // M5.Displays(0).drawJpgFile(LittleFS, "/" + cover, 0, 0);
@@ -231,7 +228,7 @@ void medium() {
     GZUnpacker->setGzProgressCallback(myProgressCallback);  // targzNullProgressCallback or defaultProgressCallback
     GZUnpacker->setLoggerCallback(BaseUnpacker::targzPrintLoggerCallback);  // gz log verbosity
 
-    if (!GZUnpacker->gzExpander(tarGzFS, ("/" + videoFilenameMedium[videoCurrent]).c_str(), tarGzFS, "/tmp.mjpg")) {
+    if (!GZUnpacker->gzExpander(tarGzFS, ("/" + videoFilename[videoCurrent]).c_str(), tarGzFS, "/tmp.mjpg")) {
       Serial.printf("gzExpander failed with return code #%d", GZUnpacker->tarGzGetError());
     }
 
@@ -240,7 +237,7 @@ void medium() {
 
     if (!mjpegFile || mjpegFile.isDirectory()) {
       Serial.print("ERROR: Failed to open ");
-      Serial.print(videoFilenameMedium[videoCurrent]);
+      Serial.print(videoFilename[videoCurrent]);
       Serial.println(" file for reading");
     } else {
       if (!mjpegBuf) {
@@ -293,7 +290,7 @@ void medium() {
     Serial.printf("%d %d \n", counter, limit);
     if (counter >= showEye) {
       eye();
-      mediumInit();
+      videoInit();
       counter = 0;
     }
   }

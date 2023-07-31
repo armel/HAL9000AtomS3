@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 // Version
-#define VERSION "1.2.0"
+#define VERSION "1.3.0"
 #define AUTHOR  "F4HWN"
 #define NAME    "HAL9000"
 
@@ -15,7 +15,7 @@
 // Others define
 #define JPEG_LOGO         "/HAL9000.jpg"
 #define JPEG_EYE          "/HAL9000-eye.jpg"
-#define MJPEG_BUFFER_SIZE 128 * 128 * 2  // Memory for a single JPEG frame
+#define MJPEG_BUFFER_SIZE 128 * 128 * 1  // Memory for a single JPEG frame
 #define DEST_FS_USES_LITTLEFS
 
 // Dependencies
@@ -41,8 +41,7 @@ static unsigned long start_ms, curr_ms;
 fs::File root;
 fs::File mjpegFile;
 
-String videoFilenameMedium[128];
-String videoFilenameSmall[128];
+String videoFilename[128];
 
 boolean load = false;
 boolean skip = false;
