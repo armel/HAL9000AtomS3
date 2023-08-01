@@ -41,9 +41,6 @@ void setup() {
   M5.Displays(0).setBrightness(brightness);
   M5.Displays(0).fillScreen(TFT_BLACK);
 
-  // Clean LittleFS
-  LittleFS.remove("/tmp.mjpg");
-
   // Multitasking task for retreive button
   xTaskCreatePinnedToCore(checkButton,    // Function to implement the task
                           "checkButton",  // Name of the task
