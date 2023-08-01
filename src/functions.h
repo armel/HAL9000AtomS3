@@ -11,15 +11,13 @@ static int jpegDrawCallback(JPEGDRAW *pDraw) {
 // Pixel drawing callback
 static int mjpegDrawCallback(JPEGDRAW *pDraw) {
   // Serial.printf("Draw pos = %d,%d. size = %d x %d\n", pDraw->x, pDraw->y, pDraw->iWidth, pDraw->iHeight);
-  unsigned long start = millis();
   M5.Displays(0).pushImage(pDraw->x, pDraw->y, pDraw->iWidth, pDraw->iHeight, pDraw->pPixels);
-  total_show_video += millis() - start;
   return 1;
 }
 
-// List files on SD
+// List files on LittleFS
 void getVideoList(File dir) {
-  String tmp;
+  char string[64];
 
   while (true) {
     File entry = dir.openNextFile();
@@ -29,20 +27,17 @@ void getVideoList(File dir) {
     }
 
     if (strstr(entry.name(), "/.") == NULL && strstr(entry.name(), ".mjpg.gz") != NULL) {
+      sprintf(string, "/%s", entry.name());
+      strcpy(videoFilename[limit], string);
+      limit++;
+
       M5.Displays(0).setTextPadding(128);
       M5.Displays(0).setTextColor(TFT_WHITE, TFT_BLACK);
       M5.Displays(0).setTextDatum(CC_DATUM);
 
-      tmp = entry.name();
-      tmp.replace("-medium.mjpg.gz", ".mjpg.gz");
+      M5.Displays(0).drawString(string, 64, 90);
 
-      M5.Displays(0).drawString(tmp, 64, 90);
-
-      if (strstr(entry.name(), "-medium") != NULL) {
-        videoFilenameMedium[limit] = entry.name();
-        limit++;
-        delay(50);
-      }
+      delay(50);
     }
 
     if (entry.isDirectory() && strstr(entry.name(), "/.") == NULL) {
@@ -60,25 +55,19 @@ void checkButton(void *pvParameters) {
   int8_t step = 2;
 
   for (;;) {
-    skip = false;
-
     M5.update();
 
     btnA = M5.BtnA.isPressed();
 
     if (btnA) {
       brightnessOld += step;
-      if(step > 0 && brightnessOld >= 254)
-      {
+      if (step > 0 && brightnessOld >= 254) {
+        step = -step;
+      } else if (step < 0 && brightnessOld <= 2) {
         step = -step;
       }
-      else if(step < 0 && brightnessOld <= 2)
-      {
-        step = -step;
-      }
-      
-      if (brightnessOld != brightness)
-      {
+
+      if (brightnessOld != brightness) {
         brightness = brightnessOld;
         M5.Displays(0).setBrightness(brightness);
         preferences.putUInt("brightness", brightness);
@@ -123,10 +112,12 @@ void myProgressCallback(uint8_t progress) {
 
 // Boot loader
 boolean boot() {
+  char string[64];
+
   if (!LittleFS.begin()) {
     Serial.println(F("ERROR: File System Mount Failed!"));
   } else {
-    jpegDraw(JPEG_LOGO, jpegDrawCallback, true /* useBigEndian */, 0 /* x */, 0 /* y */, 128 /* widthLimit */,
+    jpegDraw(HAL9000_LOGO, jpegDrawCallback, true /* useBigEndian */, 0 /* x */, 0 /* y */, 128 /* widthLimit */,
              128 /* heightLimit */);
 
     // Get video files
@@ -136,7 +127,10 @@ boolean boot() {
     M5.Displays(0).setTextDatum(CC_DATUM);
     M5.Displays(0).setTextColor(TFT_WHITE, TFT_BLACK);
     M5.Displays(0).drawString("HAL9000", 64, 40);
-    M5.Displays(0).drawString("Version " + String(VERSION), 64, 50);
+
+    sprintf(string, "%s Version %s", NAME, VERSION);
+    M5.Displays(0).drawString(string, 64, 50);
+
     M5.Displays(0).drawString(" by F4HWN", 64, 60);
     M5.Displays(0).drawString("Loading kernel", 64, 80);
     getVideoList(root);
@@ -159,7 +153,7 @@ boolean eye() {
   if (!LittleFS.begin()) {
     Serial.println(F("ERROR: File System Mount Failed!"));
   } else {
-    jpegDraw(JPEG_EYE, jpegDrawCallback, true /* useBigEndian */, 0 /* x */, 0 /* y */, 128 /* widthLimit */,
+    jpegDraw(HAL9000_EYE, jpegDrawCallback, true /* useBigEndian */, 0 /* x */, 0 /* y */, 128 /* widthLimit */,
              128 /* heightLimit */);
   }
 
@@ -178,8 +172,8 @@ boolean eye() {
   return true;
 }
 
-// Video medium init
-void mediumInit() {
+// Video init
+void videoInit() {
   if (!LittleFS.begin()) {
     Serial.println(F("ERROR: File System Mount Failed!"));
   } else {
@@ -187,15 +181,11 @@ void mediumInit() {
   }
 }
 
-// Video medium
-void medium() {
-  uint8_t counter = 0;
-  String cover;
-
-  total_frames       = 0;
-  total_read_video   = 0;
-  total_decode_video = 0;
-  total_show_video   = 0;
+// Video
+void video() {
+  uint8_t *mjpegBuf = (uint8_t *)malloc(MJPEG_BUFFER_SIZE);
+  uint8_t counter   = 0;
+  char screenshot[64], tmp[48];
 
   // Gunzip
   tarGzFS.begin();
@@ -206,24 +196,30 @@ void medium() {
         videoCurrent = random(limit);  // Returns a pseudo-random integer between 0 and number of video files
       }
     } else {
-      indice       = (indice++ < (limit - 1)) ? indice : 0;
       videoCurrent = indice;
+      indice       = (indice++ < (limit - 1)) ? indice : 0;
     }
 
-    // Serial.printf("%d %s\n", videoCurrent, videoFilenameMedium[videoCurrent]);
+    Serial.println(videoFilename[videoCurrent]);
 
-    cover = videoFilenameMedium[videoCurrent];
-    cover.replace(".mjpg.gz", ".jpg");
+    strcpy(tmp, videoFilename[videoCurrent]);
+    tmp[strlen(tmp) - strlen(".mjpg.gz")] = '\0';
+
+    sprintf(screenshot, "%s.jpg", tmp);
 
     // M5.Displays(0).drawJpgFile(LittleFS, "/" + cover, 0, 0);
 
-    jpegDraw(("/" + cover).c_str(), jpegDrawCallback, true /* useBigEndian */, 0 /* x */, 0 /* y */,
-             128 /* widthLimit */, 128 /* heightLimit */);
+    jpegDraw(screenshot, jpegDrawCallback, true /* useBigEndian */, 0 /* x */, 0 /* y */, 128 /* widthLimit */,
+             128 /* heightLimit */);
 
     load = true;
 
+    if (LittleFS.exists(HAL9000_TMP)) {
+      LittleFS.remove(HAL9000_TMP);
+    }
+
     GzUnpacker *GZUnpacker = new GzUnpacker();
-    GZUnpacker->haltOnError(true);                   // stop on fail (manual restart/reset required)
+    GZUnpacker->haltOnError(true);  // stop on fail (manual restart/reset required)
     GZUnpacker->setupFSCallbacks(targzTotalBytesFn,
                                  targzFreeBytesFn);  // prevent the partition from exploding, recommended
     // GZUnpacker->setGzProgressCallback( BaseUnpacker::defaultProgressCallback ); // targzNullProgressCallback or
@@ -231,41 +227,24 @@ void medium() {
     GZUnpacker->setGzProgressCallback(myProgressCallback);  // targzNullProgressCallback or defaultProgressCallback
     GZUnpacker->setLoggerCallback(BaseUnpacker::targzPrintLoggerCallback);  // gz log verbosity
 
-    if (!GZUnpacker->gzExpander(tarGzFS, ("/" + videoFilenameMedium[videoCurrent]).c_str(), tarGzFS, "/tmp.mjpg")) {
+    if (!GZUnpacker->gzExpander(tarGzFS, videoFilename[videoCurrent], tarGzFS, HAL9000_TMP)) {
       Serial.printf("gzExpander failed with return code #%d", GZUnpacker->tarGzGetError());
     }
-
-    mjpegFile         = LittleFS.open("/tmp.mjpg", "r");
-    uint8_t *mjpegBuf = (uint8_t *)malloc(MJPEG_BUFFER_SIZE);
+    mjpegFile = LittleFS.open(HAL9000_TMP, FILE_READ);
 
     if (!mjpegFile || mjpegFile.isDirectory()) {
       Serial.print("ERROR: Failed to open ");
-      Serial.print(videoFilenameMedium[videoCurrent]);
+      Serial.print(videoFilename[videoCurrent]);
       Serial.println(" file for reading");
     } else {
       if (!mjpegBuf) {
         Serial.println(F("mjpegBuf malloc failed!"));
       } else {
         Serial.println(F("MJPEG start"));
-
-        start_ms = millis();
-        curr_ms  = millis();
         mjpegClass.setup(&mjpegFile, mjpegBuf, mjpegDrawCallback, true, 0, 0, 128, 128);
         while (mjpegFile.available()) {
-          // Skip
-          if (skip) {
-            Serial.println(F("MJPEG skip"));
-            mjpegFile.close();
-            LittleFS.remove("/tmp.mjpg");
-            free(mjpegBuf);
-            videoLast = videoCurrent;
-            counter++;
-            return;
-          }
           // Read video
           mjpegClass.readMjpegBuf();
-          total_read_video += millis() - curr_ms;
-          curr_ms = millis();
 
           // Play video
           mjpegClass.drawJpg();
@@ -274,15 +253,10 @@ void medium() {
             load = false;
           }
 
-          total_decode_video += millis() - curr_ms;
-          curr_ms = millis();
-          total_frames++;
           delay(25);  // Hack for AtomS3 only !!!
         }
         Serial.println(F("MJPEG end"));
         mjpegFile.close();
-        LittleFS.remove("/tmp.mjpg");
-        free(mjpegBuf);
       }
     }
 
@@ -293,7 +267,7 @@ void medium() {
     Serial.printf("%d %d \n", counter, limit);
     if (counter >= showEye) {
       eye();
-      mediumInit();
+      videoInit();
       counter = 0;
     }
   }
